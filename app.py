@@ -41,20 +41,33 @@ search = st.text_input("🔍 搜尋 (品牌、名稱、標籤...)", placeholder=
 v_df = df[df.apply(lambda r: r.astype(str).str.contains(search, case=False).any(), axis=1)] if search else df
 
 if not v_df.empty:
-    for idx, r in v_df.iterrows():
-        c1, c2, c3 = st.columns([4, 1, 2])
-        tag_str = f" <small style='color:blue;'>[{r['標籤']}]</small>" if r['標籤'] else ""
-        c1.markdown(f"**[{r['品牌']}]** {r['色號']} - {r['名稱']}{tag_str}", unsafe_allow_html=True)
-        c2.write(f"庫存: **{int(r['庫存數量'])}**")
+   for idx, r in v_df.iterrows():
+        # 建立三欄：圖片、資訊、操作按鈕
+        col_img, col_info, col_btn = st.columns([1, 4, 2])
         
-        b1, b2, b3 = c3.columns(3)
-        if b1.button("➕", key=f"p{idx}"):
-            df.at[idx, '庫存數量'] += 1
-            save_data(df); st.rerun()
-        if b2.button("➖", key=f"m{idx}") and df.at[idx, '庫存數量'] > 0:
-            df.at[idx, '庫存數量'] -= 1
-            save_data(df); st.rerun()
-        if b3.button("🗑️", key=f"d{idx}"):
-            df = df.drop(idx)
-            save_data(df); st.rerun()
+        # 1. 顯示圖片
+        with col_img:
+            if r['圖片路徑'] and str(r['圖片路徑']).startswith('http'):
+                st.image(r['圖片路徑'], use_container_width=True)
+            else:
+                st.write("🎨") # 若無圖片則顯示圖示
+        
+        # 2. 顯示文字資訊
+        with col_info:
+            tag_str = f" <small style='color:blue;'>[{r['標籤']}]</small>" if r['標籤'] else ""
+            st.markdown(f"**[{r['品牌']}]** {r['色號']}\n\n{r['名稱']}{tag_str}", unsafe_allow_html=True)
+            st.write(f"庫存: **{int(r['庫存數量'])}**")
+        
+        # 3. 顯示操作按鈕
+        with col_btn:
+            b1, b2, b3 = st.columns(3)
+            if b1.button("➕", key=f"p{idx}"):
+                df.at[idx, '庫存數量'] += 1
+                save_data(df); st.rerun()
+            if b2.button("➖", key=f"m{idx}") and df.at[idx, '庫存數量'] > 0:
+                df.at[idx, '庫存數量'] -= 1
+                save_data(df); st.rerun()
+            if b3.button("🗑️", key=f"d{idx}"):
+                df = df.drop(idx)
+                save_data(df); st.rerun()
         st.divider()
