@@ -37,19 +37,45 @@ with st.sidebar:
             st.rerun()
 
 # --- 主畫面：搜尋與切換 ---
+# --- 主畫面：搜尋與進階篩選 ---
 st.title("☁️ 模型漆雲端管理系統")
 
-# 搜尋與模式切換排在一列
+# 1. 第一層：關鍵字搜尋與模式切換
 c1, c2 = st.columns([3, 1])
 with c1:
-    search = st.text_input("🔍 搜尋 (品牌、名稱、標籤...)", placeholder="例如：螢光", label_visibility="collapsed")
+    search = st.text_input("🔍 關鍵字搜尋", placeholder="搜尋色號、名稱...", label_visibility="collapsed")
 with c2:
     view_mode = st.radio("顯示模式", ["列表", "網格"], horizontal=True, label_visibility="collapsed")
 
-# 過濾資料
-v_df = df[df.apply(lambda r: r.astype(str).str.contains(search, case=False).any(), axis=1)] if search else df
+# 2. 第二層：進階分類篩選 (橫向排版)
+f1, f2 = st.columns(2)
+with f1:
+    # 品牌多選
+    selected_brands = st.multiselect("過濾品牌", options=BRS, placeholder="選擇品牌...")
+with f2:
+    # 提取所有標籤並去重 (假設標籤是用空格隔開)
+    all_tags = set()
+    df['標籤'].fillna('').str.split().apply(all_tags.update)
+    selected_tags = st.multiselect("過濾功能/標籤", options=sorted(list(all_tags)), placeholder="例如：噴塗、筆塗...")
+
+# --- 過濾資料邏輯 ---
+v_df = df.copy()
+
+# A. 關鍵字過濾
+if search:
+    v_df = v_df[v_df.apply(lambda r: r.astype(str).str.contains(search, case=False).any(), axis=1)]
+
+# B. 品牌過濾 (如果有選的話)
+if selected_brands:
+    v_df = v_df[v_df['品牌'].isin(selected_brands)]
+
+# C. 標籤過濾 (如果有選的話)
+if selected_tags:
+    # 只要漆料包含選中標籤的其中一個就顯示
+    v_df = v_df[v_df['標籤'].fillna('').apply(lambda t: any(tag in t.split() for tag in selected_tags))]
 
 st.divider()
+# --- 接續原本的 if not v_df.empty: 顯示邏輯 ---
 
 if not v_df.empty:
     if view_mode == "列表":
