@@ -39,48 +39,7 @@ st.title("☁️ 模型漆雲端管理系統")
 search = st.text_input("🔍 搜尋 (品牌、名稱、標籤...)", placeholder="例如：螢光")
 
 v_df = df[df.apply(lambda r: r.astype(str).str.contains(search, case=False).any(), axis=1)] if search else df
-import streamlit as st
-# ... 其他 import ...
 
-def main():
-    st.title("🎨 我的模型漆庫存")
-
-    # 1. 這裡通常是讀取資料的程式碼
-    df = load_data() 
-    
-    # 2. 這裡通常是搜尋過濾的程式碼
-    search = st.text_input("搜尋色號或名稱")
-    v_df = df[df['名稱'].str.contains(search)] # 假設這是你的過濾邏輯
-
-    # ---------------------------------------------------------
-    # ⭐ 就在這裡插入「顯示模式」切換鈕
-    # ---------------------------------------------------------
-    view_mode = st.radio("顯示模式", ["列表", "網格"], horizontal=True)
-    st.divider()
-
-    # ---------------------------------------------------------
-    # ⭐ 這裡開始取代原本的 for 迴圈
-    # ---------------------------------------------------------
-    if view_mode == "列表":
-        for idx, r in v_df.iterrows():
-            # ... 這裡貼上「列表模式」的程式碼 (包含 col_img, col_info 等) ...
-            st.divider()
-
-    else: # 網格模式
-        n_cols = 3 # 一列顯示 3 個，手機看建議改 2
-        for i in range(0, len(v_df), n_cols):
-            cols = st.columns(n_cols)
-            batch = v_df.iloc[i : i + n_cols]
-            for j, (idx, r) in enumerate(batch.iterrows()):
-                with cols[j]:
-                    # ... 這裡貼上「網格模式」的顯示程式碼 ...
-                    if r['圖片路徑']: st.image(r['圖片路徑'])
-                    st.write(f"**{r['色號']}**")
-                    # ... 按鈕也要記得放進去 ...
-    # ---------------------------------------------------------
-
-if __name__ == "__main__":
-    main()
 if not v_df.empty:
    for idx, r in v_df.iterrows():
         # 建立三欄：圖片、資訊、操作按鈕
