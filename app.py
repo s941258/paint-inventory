@@ -17,7 +17,9 @@ with st.sidebar:
     st.header("🔐 權限驗證")
     input_password = st.text_input("輸入管理員密碼", type="password")
     is_admin = (input_password == target_password)
-    
+    # 測試用：這會在網頁上顯示你設定的密碼（測試完記得刪掉！）
+# st.write(f"Debug - 預期密碼: {target_password}")
+# st.write(f"Debug - 你輸入的: {input_password}")
     if is_admin:
         st.success("✅ 管理員模式已啟動")
     else:
