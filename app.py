@@ -11,7 +11,7 @@ BASE_IMAGE_URL = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}
 
 # --- 2. 權限驗證邏輯 ---
 # 從 Secrets 讀取 ADMIN_PASSWORD，若讀不到則預設為 "admin"
-target_password = st.secrets["ADMIN_PASSWORD"]
+target_password = st.secrets.get("ADMIN_PASSWORD", "admin")
 
 with st.sidebar:
     st.header("🔐 權限驗證")
