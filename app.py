@@ -5,7 +5,7 @@ import pandas as pd
 st.set_page_config(page_title="雲端模型漆庫存", layout="wide")
 
 # --- 1. 基礎設定 (請修改你的 GitHub 帳號) ---
-GITHUB_USER = "你的GitHub帳號" 
+GITHUB_USER = "s941258" 
 GITHUB_REPO = "paint-inventory"
 BASE_IMAGE_URL = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/main/paints/"
 
