@@ -67,7 +67,8 @@ c1, c2 = st.columns([3, 1])
 with c1:
     search = st.text_input("🔍 搜尋", placeholder="搜尋色號或名稱...", label_visibility="collapsed")
 with c2:
-    view_mode = st.radio("顯示模式", ["列表", "網格"], horizontal=True, label_visibility="collapsed")
+   # 原本是 ["列表", "網格"]，現在改為：
+view_mode = st.radio("顯示模式", ["列表", "網格", "緊湊"], horizontal=True, label_visibility="collapsed")
 
 f1, f2 = st.columns(2)
 with f1:
@@ -91,30 +92,40 @@ st.divider()
 
 # --- 6. 顯示邏輯 ---
 if not v_df.empty:
-    if view_mode == "列表":
+    # --- 新增：緊湊模式 ---
+    if view_mode == "緊湊":
+        st.subheader("📊 快速清單 (不含圖片)")
+        
+        # 整理要顯示的欄位，並確保數量是整數
+        compact_df = v_df[["品牌", "色號", "名稱", "庫存數量", "標籤"]].copy()
+        compact_df["庫存數量"] = compact_df["庫存數量"].astype(int)
+        
+        # 使用 st.dataframe 建立互動式表格
+        # 這樣你可以點擊欄位標題進行「自動排序」
+        st.dataframe(
+            compact_df,
+            column_config={
+                "品牌": st.column_config.TextColumn("品牌", width="small"),
+                "色號": st.column_config.TextColumn("色號", width="small"),
+                "名稱": st.column_config.TextColumn("名稱", width="medium"),
+                "庫存數量": st.column_config.NumberColumn("數量", format="%d 罐", width="small"),
+                "標籤": st.column_config.TextColumn("屬性標籤", width="medium"),
+            },
+            hide_index=True,
+            use_container_width=True
+        )
+        
+        if is_admin:
+            st.info("💡 提示：緊湊模式僅供快速查閱，如需修改數量請切換回「列表」模式。")
+
+    # --- 原本的列表模式 (改成 elif) ---
+    elif view_mode == "列表":
         for idx, r in v_df.iterrows():
-            col_img, col_info, col_btn = st.columns([1, 4, 2])
-            img_url = get_img_url(r['圖片路徑'])
-            with col_img:
-                if img_url: st.image(img_url, use_container_width=True)
-                else: st.write("🎨")
-            with col_info:
-                tag_str = f" <small style='color:blue;'>[{r['標籤']}]</small>" if r['標籤'] else ""
-                st.markdown(f"**[{r['品牌']}]** {r['色號']}\n\n{r['名稱']}{tag_str}", unsafe_allow_html=True)
-                st.write(f"庫存: **{int(r['庫存數量'])}**")
+            # ... 這裡接你原本的列表程式碼 ...
             
-            with col_btn:
-                if is_admin: # 管理員才顯示按鈕
-                    b1, b2, b3 = st.columns(3)
-                    if b1.button("➕", key=f"p_l_{idx}"):
-                        df.at[idx, '庫存數量'] += 1; save_data(df); st.rerun()
-                    if b2.button("➖", key=f"m_l_{idx}") and df.at[idx, '庫存數量'] > 0:
-                        df.at[idx, '庫存數量'] -= 1; save_data(df); st.rerun()
-                    if b3.button("🗑️", key=f"d_l_{idx}"):
-                        df = df.drop(idx); save_data(df); st.rerun()
-                else:
-                    st.write("🔒 唯讀模式")
-            st.divider()
+    # --- 原本的網格模式 (改成 else) ---
+    else: 
+        # ... 這裡接你原本的網格程式碼 ...
     
     else: # 網格模式
         n_cols = 4 
