@@ -67,8 +67,8 @@ c1, c2 = st.columns([3, 1])
 with c1:
     search = st.text_input("🔍 搜尋", placeholder="搜尋色號或名稱...", label_visibility="collapsed")
 with c2:
-   # 原本是 ["列表", "網格"]，現在改為：
-view_mode = st.radio("顯示模式", ["列表", "網格", "緊湊"], horizontal=True, label_visibility="collapsed")
+    # 這裡必須縮排！(按一次 Tab 或 4 個空格)
+    view_mode = st.radio("顯示模式", ["列表", "網格", "緊湊"], horizontal=True, label_visibility="collapsed")
 
 f1, f2 = st.columns(2)
 with f1:
