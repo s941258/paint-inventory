@@ -122,14 +122,10 @@ if not v_df.empty:
     elif view_mode == "列表":
         for idx, r in v_df.iterrows():
             # ... 這裡接你原本的列表程式碼 ...
-            
-    # --- 原本的網格模式 (改成 else) ---
-    else: 
-        # ... 這裡接你原本的網格程式碼 ...
-    
-    else: # 網格模式
+            else: # 網格模式 (這是第 116 行左右)
         n_cols = 4 
-        for i in range(0, len(v_df), n_cols):
+        for i in range(0, len(v_df), n_cols): # 假設這是第 123 行
+            # --- 以下這幾行必須比 for 再往右縮排 ---
             cols = st.columns(n_cols)
             batch = v_df.iloc[i : i + n_cols]
             for j, (idx, r) in enumerate(batch.iterrows()):
@@ -147,5 +143,9 @@ if not v_df.empty:
                         if b2.button("➖", key=f"m_g_{idx}") and df.at[idx, '庫存數量'] > 0:
                             df.at[idx, '庫存數量'] -= 1; save_data(df); st.rerun()
                     st.write("---")
+
+# --- 這是最後的 else (對應最外層的 if not v_df.empty) ---
 else:
     st.info("找不到符合條件的油漆。")
+            
+  
