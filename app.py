@@ -87,45 +87,57 @@ if selected_brands:
     v_df = v_df[v_df['品牌'].str.strip().isin(selected_brands)]
 if selected_tags:
     v_df = v_df[v_df['標籤'].fillna('').apply(lambda t: any(tag in t.split() for tag in selected_tags))]
+    st.divider()
 
-st.divider()
-
-# --- 6. 顯示邏輯 ---
+# --- 6. 顯示邏輯 (請確保這段 if 開頭是在最左邊或正確的縮排層級) ---
 if not v_df.empty:
-    # --- 新增：緊湊模式 ---
     if view_mode == "緊湊":
         st.subheader("📊 快速清單 (不含圖片)")
-        
-        # 整理要顯示的欄位，並確保數量是整數
         compact_df = v_df[["品牌", "色號", "名稱", "庫存數量", "標籤"]].copy()
-        compact_df["庫存數量"] = compact_df["庫存數量"].astype(int)
+        compact_df["庫存數量"] = pd.to_numeric(compact_df["庫存數量"], errors='coerce').fillna(0).astype(int)
         
-        # 使用 st.dataframe 建立互動式表格
-        # 這樣你可以點擊欄位標題進行「自動排序」
         st.dataframe(
             compact_df,
             column_config={
-                "品牌": st.column_config.TextColumn("品牌", width="small"),
-                "色號": st.column_config.TextColumn("色號", width="small"),
-                "名稱": st.column_config.TextColumn("名稱", width="medium"),
-                "庫存數量": st.column_config.NumberColumn("數量", format="%d 罐", width="small"),
-                "標籤": st.column_config.TextColumn("屬性標籤", width="medium"),
+                "品牌": st.column_config.TextColumn("品牌"),
+                "色號": st.column_config.TextColumn("色號"),
+                "名稱": st.column_config.TextColumn("名稱"),
+                "庫存數量": st.column_config.NumberColumn("數量", format="%d 罐"),
+                "標籤": st.column_config.TextColumn("標籤"),
             },
             hide_index=True,
             use_container_width=True
         )
-        
         if is_admin:
-            st.info("💡 提示：緊湊模式僅供快速查閱，如需修改數量請切換回「列表」模式。")
+            st.info("💡 提示：若要調整數量，請切換至「列表」模式。")
 
-    # --- 原本的列表模式 (改成 elif) ---
     elif view_mode == "列表":
         for idx, r in v_df.iterrows():
-            # ... 這裡接你原本的列表程式碼 ...
-            else: # 網格模式 (這是第 116 行左右)
+            col_img, col_info, col_btn = st.columns([1, 4, 2])
+            img_url = get_img_url(r['圖片路徑'])
+            with col_img:
+                if img_url: st.image(img_url, use_container_width=True)
+                else: st.write("🎨")
+            with col_info:
+                tag_str = f" <small style='color:blue;'>[{r['標籤']}]</small>" if r['標籤'] else ""
+                st.markdown(f"**[{r['品牌']}]** {r['色號']}\n\n{r['名稱']}{tag_str}", unsafe_allow_html=True)
+                st.write(f"庫存: **{int(r['庫存數量'])}**")
+            with col_btn:
+                if is_admin:
+                    b1, b2, b3 = st.columns(3)
+                    if b1.button("➕", key=f"p_l_{idx}"):
+                        df.at[idx, '庫存數量'] += 1; save_data(df); st.rerun()
+                    if b2.button("➖", key=f"m_l_{idx}") and df.at[idx, '庫存數量'] > 0:
+                        df.at[idx, '庫存數量'] -= 1; save_data(df); st.rerun()
+                    if b3.button("🗑️", key=f"d_l_{idx}"):
+                        df = df.drop(idx); save_data(df); st.rerun()
+                else:
+                    st.write("🔒 唯讀")
+            st.divider()
+
+    else: # 網格模式
         n_cols = 4 
-        for i in range(0, len(v_df), n_cols): # 假設這是第 123 行
-            # --- 以下這幾行必須比 for 再往右縮排 ---
+        for i in range(0, len(v_df), n_cols):
             cols = st.columns(n_cols)
             batch = v_df.iloc[i : i + n_cols]
             for j, (idx, r) in enumerate(batch.iterrows()):
@@ -135,17 +147,13 @@ if not v_df.empty:
                     else: st.markdown("### 🎨")
                     st.markdown(f"**{r['色號']}**\n{r['名稱']}")
                     st.write(f"庫存: **{int(r['庫存數量'])}**")
-                    
-                    if is_admin: # 管理員才顯示按鈕
+                    if is_admin:
                         b1, b2 = st.columns(2)
                         if b1.button("➕", key=f"p_g_{idx}"):
                             df.at[idx, '庫存數量'] += 1; save_data(df); st.rerun()
                         if b2.button("➖", key=f"m_g_{idx}") and df.at[idx, '庫存數量'] > 0:
                             df.at[idx, '庫存數量'] -= 1; save_data(df); st.rerun()
                     st.write("---")
-
-# --- 這是最後的 else (對應最外層的 if not v_df.empty) ---
 else:
     st.info("找不到符合條件的油漆。")
-            
-  
+
